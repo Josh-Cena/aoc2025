@@ -5,6 +5,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 use std::env;
 use std::fs;
@@ -36,6 +37,8 @@ fn main() {
         ("6", "2") => day6::solve2(contents),
         ("7", "1") => day7::solve1(contents),
         ("7", "2") => day7::solve2(contents),
+        ("8", "1") => day8::solve1(contents),
+        ("8", "2") => day8::solve2(contents),
         _ => println!("Day not implemented"),
     }
 }
