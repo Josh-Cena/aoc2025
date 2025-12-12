@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 pub fn solve1(data: Vec<String>) {
-    let data = data.iter().map(|s| s.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
+    let data = data
+        .iter()
+        .map(|s| s.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
     let mut has_beam = vec![false; data[0].len()];
     has_beam[data[0].iter().position(|&c| c == 'S').unwrap()] = true;
     let mut count = 0;
@@ -24,7 +27,12 @@ pub fn solve1(data: Vec<String>) {
     println!("{}", count);
 }
 
-fn count(data: Vec<Vec<char>>, lvl: usize, beam_pos: usize, cache: &mut HashMap<(usize, usize), i64>) -> i64 {
+fn count(
+    data: Vec<Vec<char>>,
+    lvl: usize,
+    beam_pos: usize,
+    cache: &mut HashMap<(usize, usize), i64>,
+) -> i64 {
     if cache.contains_key(&(lvl, beam_pos)) {
         return cache[&(lvl, beam_pos)];
     }
@@ -48,7 +56,10 @@ fn count(data: Vec<Vec<char>>, lvl: usize, beam_pos: usize, cache: &mut HashMap<
 }
 
 pub fn solve2(data: Vec<String>) {
-    let data = data.iter().map(|s| s.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
+    let data = data
+        .iter()
+        .map(|s| s.chars().collect::<Vec<char>>())
+        .collect::<Vec<_>>();
     let start_pos = data[0].iter().position(|&c| c == 'S').unwrap();
     let count = count(data, 1, start_pos, &mut HashMap::new());
     println!("{}", count);

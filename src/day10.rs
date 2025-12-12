@@ -1,15 +1,15 @@
+use good_lp::{Expression, Solution, SolverModel, solvers::microlp::microlp, variable, variables};
 use regex::Regex;
 use std::collections::{HashSet, VecDeque};
-use good_lp::{
-    variable, variables, solvers::microlp::microlp, Expression, SolverModel, Solution,
-};
 
 pub fn solve1(data: Vec<String>) {
     let re = Regex::new(r"\[([^\]]+)\] ((?:\((?:\d+,)*\d+\) )+)\{((?:\d+,)*\d+)\}").unwrap();
     let lines = data
         .iter()
         .map(|line| {
-            let caps = re.captures(line).expect(format!("Line didn't match: {}", line.as_str()).as_str());
+            let caps = re
+                .captures(line)
+                .expect(format!("Line didn't match: {}", line.as_str()).as_str());
             let lights = &caps[1];
             let wirings_str = &caps[2];
             let joltage_str = &caps[3];

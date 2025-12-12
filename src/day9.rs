@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use itertools::Itertools;
+use std::collections::BTreeMap;
 
 pub fn solve1(data: Vec<String>) {
     let coords = data
@@ -83,7 +83,11 @@ pub fn solve2(data: Vec<String>) {
     // 0 => inside, 1 => edge, 2 => outside
     // Leave a border of 0s around the grid to make flood fill easier
     let mut grid = vec![vec![0; y_max + 2]; x_max + 2];
-    for (&(x1, y1), &(x2, y2)) in coords.iter().chain(std::iter::once(&coords[0])).tuple_windows() {
+    for (&(x1, y1), &(x2, y2)) in coords
+        .iter()
+        .chain(std::iter::once(&coords[0]))
+        .tuple_windows()
+    {
         let cx1 = *x_compression.get(&x1).unwrap();
         let cy1 = *y_compression.get(&y1).unwrap();
         let cx2 = *x_compression.get(&x2).unwrap();
