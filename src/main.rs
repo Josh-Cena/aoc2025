@@ -1,6 +1,7 @@
 mod day1;
 mod day10;
 mod day11;
+mod day12;
 mod day2;
 mod day3;
 mod day4;
@@ -21,9 +22,9 @@ fn main() {
     let filename = format!("inputs/day{}/{}.txt", day, input);
     let contents = fs::read_to_string(filename)
         .unwrap()
+        .trim()
         .split('\n')
         .map(|s| s.to_string())
-        .filter(|s| !s.is_empty())
         .collect();
     match (day.as_str(), prob.as_str()) {
         ("1", "1") => day1::solve1(contents),
@@ -48,6 +49,8 @@ fn main() {
         ("10", "2") => day10::solve2(contents),
         ("11", "1") => day11::solve1(contents),
         ("11", "2") => day11::solve2(contents),
+        ("12", "1") => day12::solve1(contents),
+        ("12", "2") => day12::solve2(contents),
         _ => println!("Day not implemented"),
     }
 }
