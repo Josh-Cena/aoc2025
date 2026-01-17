@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::VecDeque;
+use std::collections::{BinaryHeap, HashMap};
+use std::cmp::Reverse;
+use union_find::{QuickUnionUf, UnionBySize, UnionFind};
 
 pub fn solve1(data: Vec<String>) {
     let (num_conn, coords) = data.split_first().unwrap();
@@ -13,49 +13,30 @@ pub fn solve1(data: Vec<String>) {
                 .collect::<Vec<i64>>()
         })
         .collect::<Vec<_>>();
-    let mut dist: HashMap<(usize, usize), i64> = HashMap::new();
+    let mut dist: Vec<(i64, usize, usize)> = Vec::new();
     for i in 0..coords.len() {
         for j in i + 1..coords.len() {
             let d = (coords[i][0] - coords[j][0]).pow(2)
                 + (coords[i][1] - coords[j][1]).pow(2)
                 + (coords[i][2] - coords[j][2]).pow(2);
-            dist.insert((i, j), d);
+            dist.push((d, i, j));
         }
     }
-    let mut dist = dist.into_iter().collect::<Vec<((usize, usize), i64)>>();
-    dist.sort_by_key(|&(_, d)| d);
-    let mut adj_list = HashMap::new();
-    for &((a, b), _) in dist.iter().take(num_conn) {
-        adj_list.entry(a).or_insert(Vec::new()).push(b);
-        adj_list.entry(b).or_insert(Vec::new()).push(a);
+    let mut heap = BinaryHeap::from_iter(dist.into_iter().map(Reverse));
+    let mut uf = QuickUnionUf::<UnionBySize>::new(coords.len());
+    for _ in 0..num_conn {
+        let Reverse((_, a, b)) = heap.pop().unwrap();
+        uf.union(a, b);
     }
-    let mut visited = HashSet::new();
-    let mut components: Vec<u32> = Vec::new();
+    let mut sizes = HashMap::new();
     for i in 0..coords.len() {
-        if visited.contains(&i) {
-            continue;
-        }
-        let mut q = VecDeque::new();
-        q.push_back(i);
-        visited.insert(i);
-        let mut comp_size = 0;
-        while !q.is_empty() {
-            let node = q.pop_front().unwrap();
-            comp_size += 1;
-            if let Some(neighbors) = adj_list.get(&node) {
-                for &neighbor in neighbors.iter() {
-                    if !visited.contains(&neighbor) {
-                        visited.insert(neighbor);
-                        q.push_back(neighbor);
-                    }
-                }
-            }
-        }
-        components.push(comp_size);
+        let root = uf.find(i);
+        *sizes.entry(root).or_insert(0) += 1;
     }
-    components.sort();
-    components.reverse();
-    println!("{}", components.iter().take(3).product::<u32>());
+    let mut v: Vec<usize> = sizes.values().copied().collect();
+    v.sort_unstable_by(|a, b| b.cmp(a));
+    let result: usize = v.iter().take(3).product();
+    println!("{}", result);
 }
 
 pub fn solve2(data: Vec<String>) {
@@ -68,22 +49,24 @@ pub fn solve2(data: Vec<String>) {
                 .collect::<Vec<i64>>()
         })
         .collect::<Vec<_>>();
-    let mut dist: HashMap<(usize, usize), i64> = HashMap::new();
+    let mut dist: Vec<(i64, usize, usize)> = Vec::new();
     for i in 0..coords.len() {
         for j in i + 1..coords.len() {
             let d = (coords[i][0] - coords[j][0]).pow(2)
                 + (coords[i][1] - coords[j][1]).pow(2)
                 + (coords[i][2] - coords[j][2]).pow(2);
-            dist.insert((i, j), d);
+            dist.push((d, i, j));
         }
     }
-    let mut dist = dist.into_iter().collect::<Vec<((usize, usize), i64)>>();
-    dist.sort_by_key(|&(_, d)| d);
-    let mut is_connected = vec![false; coords.len()];
-    for &((a, b), _) in dist.iter() {
-        is_connected[a] = true;
-        is_connected[b] = true;
-        if is_connected.iter().all(|&x| x) {
+    let mut heap = BinaryHeap::from_iter(dist.into_iter().map(Reverse));
+    let mut uf = QuickUnionUf::<UnionBySize>::new(coords.len());
+    let mut num_components = coords.len();
+    loop {
+       let Reverse((_, a, b)) = heap.pop().unwrap();
+        if uf.union(a, b) {
+            num_components -= 1;
+        }
+        if num_components == 1 {
             println!("{}", coords[a][0] * coords[b][0]);
             break;
         }

@@ -7,4 +7,6 @@ edition = "2024"
 good_lp = { version = "1.14.2", features = ["microlp"], default-features = false }
 indicatif = "0.18.3"
 itertools = "0.14.0"
+plotters = "0.3.7"
 regex = "1.12.2"
+union-find = "0.4.3"

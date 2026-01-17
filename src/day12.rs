@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 struct Shape {
     cells: Vec<(usize, usize)>,
-    block_index: usize,
+    block_id: usize,
 }
 
 impl Debug for Shape {
@@ -72,10 +72,7 @@ fn parse_input(data: Vec<String>) -> (Vec<Shape>, Vec<(usize, usize, Vec<usize>)
             }
             attempted_shapes
                 .into_iter()
-                .map(|cells| Shape {
-                    cells,
-                    block_index: i,
-                })
+                .map(|cells| Shape { cells, block_id: i })
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
@@ -120,13 +117,13 @@ fn search(shapes: &Vec<Shape>, board: &Vec<Vec<bool>>, counts: &Vec<usize>) -> b
         return true;
     }
     for shape in shapes {
-        if counts[shape.block_index] == 0 {
+        if counts[shape.block_id] == 0 {
             continue;
         }
         for col in 0..board[0].len() - 2 {
             if let Some(new_board) = drop_shape(shape, &board, col) {
                 let mut new_counts = counts.clone();
-                new_counts[shape.block_index] -= 1;
+                new_counts[shape.block_id] -= 1;
                 if search(shapes, &new_board, &new_counts) {
                     return true;
                 }
@@ -141,19 +138,12 @@ pub fn solve1(data: Vec<String>) {
     let mut total = 0;
     for (width, height, counts) in regions {
         let definitely_fits = (width / 3) * (height / 3) >= counts.iter().sum::<usize>();
-        let definitely_not_fit = width * height
-            < counts
-                .iter()
-                .enumerate()
-                .map(|(i, &x)| {
-                    x * shapes
-                        .iter()
-                        .find(|s| s.block_index == i)
-                        .unwrap()
-                        .cells
-                        .len()
-                })
-                .sum::<usize>();
+        let shape_area = counts
+            .iter()
+            .enumerate()
+            .map(|(i, &x)| x * shapes.iter().find(|s| s.block_id == i).unwrap().cells.len())
+            .sum::<usize>();
+        let definitely_not_fit = width * height < shape_area;
         if definitely_fits {
             total += 1;
         } else if !definitely_not_fit {

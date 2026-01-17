@@ -1,34 +1,34 @@
+fn neighbors(data: &Vec<Vec<char>>, i: isize, j: isize, w: isize, h: isize) -> usize {
+    let mut count = 0;
+    for di in -1..=1 {
+        for dj in -1..=1 {
+            if di == 0 && dj == 0 {
+                continue;
+            }
+            let ni = i + di;
+            let nj = j + dj;
+            if ni >= 0 && ni < h && nj >= 0 && nj < w && data[ni as usize][nj as usize] == '@' {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
 pub fn solve1(data: Vec<String>) {
     let mut total = 0;
     let data = data
         .iter()
         .map(|s| s.chars().collect::<Vec<char>>())
         .collect::<Vec<_>>();
+    let w = data[0].len() as isize;
+    let h = data.len() as isize;
     for (i, line) in data.iter().enumerate() {
         for (j, c) in line.iter().enumerate() {
             if *c != '@' {
                 continue;
             }
-            let mut neighbors = 0;
-            let l = if j > 0 {
-                neighbors += if line[j - 1] == '@' { 1 } else { 0 };
-                j - 1
-            } else {
-                0
-            };
-            let r = if j < line.len() - 1 {
-                neighbors += if line[j + 1] == '@' { 1 } else { 0 };
-                j + 1
-            } else {
-                line.len() - 1
-            };
-            if i > 0 {
-                neighbors += data[i - 1][l..=r].iter().filter(|&&x| x == '@').count();
-            }
-            if i < data.len() - 1 {
-                neighbors += data[i + 1][l..=r].iter().filter(|&&x| x == '@').count();
-            }
-            if neighbors < 4 {
+            if neighbors(&data, i as isize, j as isize, w, h) < 4 {
                 total += 1;
             }
         }
@@ -37,11 +37,13 @@ pub fn solve1(data: Vec<String>) {
 }
 
 pub fn solve2(data: Vec<String>) {
+    let mut total = 0;
     let mut data = data
         .iter()
         .map(|s| s.chars().collect::<Vec<char>>())
         .collect::<Vec<_>>();
-    let mut total = 0;
+    let w = data[0].len() as isize;
+    let h = data.len() as isize;
     loop {
         let mut positions: Vec<(usize, usize)> = vec![];
         for (i, line) in data.iter().enumerate() {
@@ -49,26 +51,7 @@ pub fn solve2(data: Vec<String>) {
                 if *c != '@' {
                     continue;
                 }
-                let mut neighbors = 0;
-                let l = if j > 0 {
-                    neighbors += if line[j - 1] == '@' { 1 } else { 0 };
-                    j - 1
-                } else {
-                    0
-                };
-                let r = if j < line.len() - 1 {
-                    neighbors += if line[j + 1] == '@' { 1 } else { 0 };
-                    j + 1
-                } else {
-                    line.len() - 1
-                };
-                if i > 0 {
-                    neighbors += data[i - 1][l..=r].iter().filter(|&&x| x == '@').count();
-                }
-                if i < data.len() - 1 {
-                    neighbors += data[i + 1][l..=r].iter().filter(|&&x| x == '@').count();
-                }
-                if neighbors < 4 {
+                if neighbors(&data, i as isize, j as isize, w, h) < 4 {
                     positions.push((i, j));
                 }
             }

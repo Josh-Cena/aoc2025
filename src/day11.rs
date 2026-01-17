@@ -1,5 +1,18 @@
-use std::collections::HashMap;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
+
+fn parse_graph(data: Vec<String>) -> HashMap<String, Vec<String>> {
+    let mut graph: HashMap<String, Vec<String>> = HashMap::new();
+    for line in data {
+        let parts = line.split(": ").collect::<Vec<_>>();
+        let node = parts[0].to_string();
+        let neighbors = parts[1]
+            .split(" ")
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        graph.insert(node, neighbors);
+    }
+    graph
+}
 
 fn count_paths(
     graph: &HashMap<String, Vec<String>>,
@@ -33,51 +46,31 @@ fn count_paths(
 
     while let Some(u) = queue.pop_front() {
         let count_u = num_paths[&u];
-        if let Some(neighbors) = graph.get(&u) {
-            for v in neighbors {
-                if avoid.contains(&v.as_str()) {
-                    continue;
-                }
-                if let Some(d) = indeg.get_mut(v) {
-                    *num_paths.entry(v.clone()).or_insert(0) += count_u;
-                    *d -= 1;
-                    if *d == 0 {
-                        queue.push_back(v.clone());
-                    }
+        for v in graph.get(&u).unwrap_or(&Vec::new()) {
+            if avoid.contains(&v.as_str()) {
+                continue;
+            }
+            if let Some(d) = indeg.get_mut(v) {
+                *num_paths.entry(v.clone()).or_insert(0) += count_u;
+                *d -= 1;
+                if *d == 0 {
+                    queue.push_back(v.clone());
                 }
             }
         }
     }
 
-    *num_paths.get(end).unwrap_or(&0)
+    *num_paths.get(end).unwrap()
 }
 
 pub fn solve1(data: Vec<String>) {
-    let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-    for line in data {
-        let parts = line.split(": ").collect::<Vec<_>>();
-        let node = parts[0].to_string();
-        let neighbors = parts[1]
-            .split(" ")
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>();
-        graph.insert(node, neighbors);
-    }
+    let graph = parse_graph(data);
     let num_paths = count_paths(&graph, "you", "out", &[]);
     println!("{}", num_paths);
 }
 
 pub fn solve2(data: Vec<String>) {
-    let mut graph: HashMap<String, Vec<String>> = HashMap::new();
-    for line in data {
-        let parts = line.split(": ").collect::<Vec<_>>();
-        let node = parts[0].to_string();
-        let neighbors = parts[1]
-            .split(" ")
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>();
-        graph.insert(node, neighbors);
-    }
+    let graph = parse_graph(data);
     let total = count_paths(&graph, "svr", "out", &[])
         - count_paths(&graph, "svr", "out", &["dac"])
         - count_paths(&graph, "svr", "out", &["fft"])

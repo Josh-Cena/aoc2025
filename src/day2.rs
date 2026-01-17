@@ -1,3 +1,7 @@
+fn ceil_div(a: u64, b: u64) -> u64 {
+    (a + b - 1) / b
+}
+
 pub fn solve1(data: Vec<String>) {
     let ranges: Vec<(u64, u64)> = data[0]
         .split(',')
@@ -6,19 +10,25 @@ pub fn solve1(data: Vec<String>) {
             (parts[0].parse().unwrap(), parts[1].parse().unwrap())
         })
         .collect();
-    let candidates = vec![11, 101, 1001, 10001, 100001];
     let mut total = 0;
-    for candidate in candidates {
-        let min = (candidate - 1) / 10;
-        let max = candidate - 2;
-        for (low, high) in &ranges {
-            let n_low = u64::div_ceil(*low, candidate);
-            let n_high = high / candidate;
-            let n_low = std::cmp::max(n_low, min);
-            let n_high = std::cmp::min(n_high, max);
-            if n_high >= n_low {
-                total += (n_low + n_high) * (n_high - n_low + 1) / 2 * candidate;
+    for (low, high) in &ranges {
+        // Solve inequality: a * (10^d + 1) >= l, where d is the number of
+        // digits in a. For each d, a is in the range [10^(d-1), 10^d - 1],
+        // So the smallest d is (10^d - 1) * (10^d + 1) >= l.
+        let d_min = ((*low as f64 + 1.0).log10() / 2.0).ceil() as u32;
+        // Solve inequality: a * (10^d + 1) <= r,
+        // which is (10^(d-1) * (10^d + 1)) <= r.
+        let d_max = (((40 * *high + 1) as f64).sqrt() / 2.0 - 0.5)
+            .log10()
+            .floor() as u32;
+        for d in d_min..=d_max {
+            let multiplier = 10u64.pow(d) + 1;
+            let a_min = ceil_div(*low, multiplier).max(10u64.pow(d - 1));
+            let a_max = (*high / multiplier).min(10u64.pow(d) - 1);
+            if a_min > a_max {
+                continue;
             }
+            total += (a_max - a_min + 1) * (a_max + a_min) * multiplier / 2;
         }
     }
     println!("{}", total);
@@ -49,11 +59,14 @@ pub fn solve2(data: Vec<String>) {
         (1001001, 100, 999),
     ];
     let mut total = 0;
+    // TODO: do better than enumerating all numbers in range
+    // But it needs to work with double-counting, for example `222222` can be
+    // counted as `22 * 10101`, or `222 * 1001`
     for (low, high) in &ranges {
         for num in *low..=*high {
-            for (candidate, min, max) in &candidates {
-                if num % candidate == 0 {
-                    let n = num / candidate;
+            for (multiplier, min, max) in &candidates {
+                if num % multiplier == 0 {
+                    let n = num / multiplier;
                     if n >= *min && n <= *max {
                         total += num;
                         break;

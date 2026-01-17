@@ -2,10 +2,9 @@ use good_lp::{Expression, Solution, SolverModel, solvers::microlp::microlp, vari
 use regex::Regex;
 use std::collections::{HashSet, VecDeque};
 
-pub fn solve1(data: Vec<String>) {
+fn parse_input(data: Vec<String>) -> Vec<(String, Vec<Vec<usize>>, Vec<i32>)> {
     let re = Regex::new(r"\[([^\]]+)\] ((?:\((?:\d+,)*\d+\) )+)\{((?:\d+,)*\d+)\}").unwrap();
-    let lines = data
-        .iter()
+    data.iter()
         .map(|line| {
             let caps = re
                 .captures(line)
@@ -32,29 +31,36 @@ pub fn solve1(data: Vec<String>) {
 
             (lights.to_string(), wirings, joltage)
         })
-        .collect::<Vec<_>>();
+        .collect()
+}
+
+pub fn solve1(data: Vec<String>) {
+    let lines = parse_input(data);
     let mut total = 0;
     'machines: for (lights, wirings, _) in lines {
-        let start = std::iter::repeat_n('.', lights.len()).collect::<String>();
+        let lights_st = lights
+            .chars()
+            .fold(0, |acc, c| acc * 2 + if c == '#' { 1 } else { 0 });
+        let n_lights = lights.len();
+        let start = 0;
         let mut queue = VecDeque::new();
         let mut visited = HashSet::new();
-        queue.push_back((start.clone(), 0));
-        visited.insert(start.clone());
+        queue.push_back((start, 0));
+        visited.insert(start);
         while !queue.is_empty() {
             let (cur_st, dist) = queue.pop_front().unwrap();
             for wiring in &wirings {
-                let mut next_st = cur_st.chars().collect::<Vec<char>>();
+                let mut next_st = cur_st;
                 for &i in wiring {
-                    next_st[i] = if next_st[i] == '.' { '#' } else { '.' };
+                    next_st = next_st ^ (1 << (n_lights - 1 - i));
                 }
-                let next_st_str = next_st.iter().collect::<String>();
-                if lights == next_st_str {
+                if lights_st == next_st {
                     total += dist + 1;
                     continue 'machines;
                 }
-                if !visited.contains(&next_st_str) {
-                    visited.insert(next_st_str.clone());
-                    queue.push_back((next_st_str, dist + 1));
+                if !visited.contains(&next_st) {
+                    visited.insert(next_st);
+                    queue.push_back((next_st, dist + 1));
                 }
             }
         }
@@ -63,7 +69,7 @@ pub fn solve1(data: Vec<String>) {
     println!("{}", total);
 }
 
-fn min_presses(buttons: &[Vec<usize>], target: &[i32]) -> Vec<i32> {
+fn min_presses(buttons: &[Vec<usize>], target: &[i32]) -> i32 {
     let mut vars = variables!();
     let mut x_vars = Vec::with_capacity(buttons.len());
 
@@ -84,7 +90,7 @@ fn min_presses(buttons: &[Vec<usize>], target: &[i32]) -> Vec<i32> {
         objective.add_mul(1.0, x);
     }
 
-    let mut model = microlp(vars.minimise(objective));
+    let mut model = microlp(vars.minimise(&objective));
 
     for i in 0..target.len() {
         let mut expr = Expression::default();
@@ -97,47 +103,14 @@ fn min_presses(buttons: &[Vec<usize>], target: &[i32]) -> Vec<i32> {
     }
 
     let solution = model.solve().unwrap();
-    x_vars
-        .iter()
-        .map(|&var| solution.value(var).round() as i32)
-        .collect()
+    solution.eval(&objective).round() as i32
 }
 
 pub fn solve2(data: Vec<String>) {
-    let lines = data
+    let lines = parse_input(data);
+    let total = lines
         .iter()
-        .map(|line| {
-            let caps = Regex::new(r"\[([^\]]+)\] ((?:\((?:\d+,)*\d+\) )+)\{((?:\d+,)*\d+)\}")
-                .unwrap()
-                .captures(line)
-                .expect(format!("Line didn't match: {}", line.as_str()).as_str());
-            let lights = &caps[1];
-            let wirings_str = &caps[2];
-            let joltage_str = &caps[3];
-
-            let wirings: Vec<Vec<usize>> = wirings_str
-                .trim()
-                .split(' ')
-                .map(|p| {
-                    p[1..p.len() - 1]
-                        .split(',')
-                        .map(|n| n.parse::<usize>().unwrap())
-                        .collect::<Vec<usize>>()
-                })
-                .collect();
-
-            let joltage: Vec<i32> = joltage_str
-                .split(',')
-                .map(|n| n.parse::<i32>().unwrap())
-                .collect();
-
-            (lights.to_string(), wirings, joltage)
-        })
-        .collect::<Vec<_>>();
-    let mut total = 0;
-    for (_, wirings, joltage) in lines {
-        let presses = min_presses(&wirings, &joltage);
-        total += presses.iter().sum::<i32>();
-    }
+        .map(|(_, wirings, joltage)| min_presses(&wirings, &joltage))
+        .sum::<i32>();
     println!("{}", total);
 }
