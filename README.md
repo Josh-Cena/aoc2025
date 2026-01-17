@@ -1,7 +1,8 @@
 # Advent of Code 2025
 
-Language: ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white) (1.91.0)
-Package Manager: [Cargo](https://doc.rust-lang.org/cargo/)
+- Language: ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white) (1.91.0)
+- Package Manager: [Cargo](https://doc.rust-lang.org/cargo/)
+- [Writeup](https://joshcena.com/notes/aoc/)
 
 This repo uses my standard AoC setup. Inputs are stored as `inputs/day{n}/{name}.txt`. By default `name` is `real` (the real question). To run a specific day's solution, use the following command:
 
